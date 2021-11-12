@@ -15,8 +15,9 @@ import com.daskrr.nameplates.core.serialize.Serializeable;
 import com.google.common.collect.Lists;
 
 public class NamePlateTextBuilder implements Serializeable {
-	
-	private List<Line> lines = Lists.newArrayList();
+
+	protected int id = -1;
+	private final List<Line> lines = Lists.newArrayList();
 	
 	public NamePlateTextBuilder() {  }
 	
@@ -44,26 +45,22 @@ public class NamePlateTextBuilder implements Serializeable {
 	
 	public NamePlateTextBuilder addLine (Line line) {
 	    this.lines.add(line);
-	    
-	    // TODO: trigger change
+
 	    return this;
 	}
 	public NamePlateTextBuilder addLines (Line... lines) {
 	    this.lines.addAll(Lists.newArrayList(lines));
-	    
-	    // TODO: trigger change
+
 	    return this;
 	}
 	public NamePlateTextBuilder addLines (int startFromIndex, Line... lines) {
 		this.lines.addAll(startFromIndex, Lists.newArrayList(lines));
-		
-	    // TODO: trigger change
+
 	    return this;
 	}
 	public NamePlateTextBuilder setLine (int index, Line line) {
 	    this.lines.set(index, line);
-	    
-	    // TODO: trigger change
+
 	    return this;
 	}
 	
@@ -86,6 +83,10 @@ public class NamePlateTextBuilder implements Serializeable {
 			for (int i = 0; i < size; i++) lines[i] = new Line();
 			return lines;
 		});
+	}
+
+	protected void setContext(int id) {
+		this.id = id;
 	}
 	
 	public static class Line implements Serializeable {
@@ -117,7 +118,7 @@ public class NamePlateTextBuilder implements Serializeable {
 		public Line append (Component component) {
 		    this.contents.add(component);
 		    
-		    // TODO: trigger change, add context to component (if any context)
+		    // trigger change, add context to component
 		    return this;
 		}
 		public Line prepend (String text) {
@@ -126,7 +127,7 @@ public class NamePlateTextBuilder implements Serializeable {
 		public Line prepend (Component component) {
 		    this.contents.add(0, component);
 		    
-		    // TODO: trigger change, add context to component (if any context)
+		    // trigger change, add context to component
 		    return this;
 		}
 		
@@ -136,7 +137,6 @@ public class NamePlateTextBuilder implements Serializeable {
 		}
 		public Line setMargin(int marginTop, int marginBottom) {
 		    this.margin = new double[] { marginTop, marginBottom };
-		    // TODO: trigger change
 		    return this;
 		}
 		
@@ -150,8 +150,6 @@ public class NamePlateTextBuilder implements Serializeable {
 		public Component[] getComponents() {
 		    return this.contents.toArray(new Component[this.contents.size()]);
 		}
-		
-		// TODO: add method that gives context to all components
 		
 		public void serialize(ByteDataSerializer serializer) {
 			serializer.writeDouble(this.margin[0]);
@@ -207,42 +205,34 @@ public class NamePlateTextBuilder implements Serializeable {
 		
 		public Component setType (ComponentType type) {
 		    this.type = type;
-		    // TODO trigger change
 		    return this;
 		}
 		public Component setColor (ChatColor color) {
 		    this.color = color;
-		    // TODO trigger change
 		    return this;
 		}
 		public Component setBold (boolean bold) {
 		    this.bold = bold;
-		    // TODO trigger change
 		    return this;
 		}
 		public Component setUnderlined (boolean underlined) {
 		    this.underlined = underlined;
-		    // TODO trigger change
 		    return this;
 		}
 		public Component setStrikethrough (boolean strikethrough) {
 		    this.strikethrough = strikethrough;
-		    // TODO trigger change
 		    return this;
 		}
 		public Component setItalic (boolean italic) {
 		    this.italic = italic;
-		    // TODO trigger change
 		    return this;
 		}
 		public Component setObfuscated (boolean obfuscated) {
 		    this.obfuscated = obfuscated;
-		    // TODO trigger change
 		    return this;
 		}
 		public Component setFormat (String format) {
 		    this.format = format;
-		    // TODO trigger change
 		    return this;
 		}
 		
@@ -252,19 +242,19 @@ public class NamePlateTextBuilder implements Serializeable {
 		public ChatColor getColor() {
 		    return this.color;
 		}
-		public boolean getBold() {
+		public boolean isBold() {
 		    return this.bold;
 		}
-		public boolean getUnderlined() {
+		public boolean isUnderlined() {
 		    return this.underlined;
 		}
-		public boolean getStrikethrough() {
+		public boolean isStrikethrough() {
 		    return this.strikethrough;
 		}
-		public boolean getItalic() {
+		public boolean isItalic() {
 		    return this.italic;
 		}
-		public boolean getObfuscated() {
+		public boolean isObfuscated() {
 		    return this.obfuscated;
 		}
 		public String getFormat() {
@@ -277,7 +267,6 @@ public class NamePlateTextBuilder implements Serializeable {
 		
 		public Component setFunction(Function<Entity, String> function) {
 			this.function = function;
-			// TODO: trigger change
 			return this;
 		}
 		
@@ -315,12 +304,12 @@ public class NamePlateTextBuilder implements Serializeable {
 		
 		public static enum ComponentType {
 			ENTITY_HEALTH_INT (ChatColor.RED, "{HP}/{MAX}"),
-			ENTITY_HEALTH_SQUARES (ChatColor.RED, "{HP_SQUARES}/{MAX_SQUARES}"),
+			ENTITY_HEALTH_SQUARES (ChatColor.RED, "{HP_SQUARES}"),
 			ENTITY_NAME (ChatColor.AQUA, "{NAME}"),
 			VARTEXT (ChatColor.RESET, "");
 			
-			private ChatColor color;
-			private String format;
+			private final ChatColor color;
+			private final String format;
 			
 			private ComponentType(ChatColor color, String format) {
 				this.color = color;

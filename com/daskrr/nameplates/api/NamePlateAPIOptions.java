@@ -38,7 +38,7 @@ public class NamePlateAPIOptions
 	}
 	
 	public static class Key<T> {
-		public static final Key<Integer> VIEW_DISTANCE = makeKey(new Key<Integer>(160));
+		public static final Key<Integer> VIEW_DISTANCE = makeKey(new Key<Integer>(160)); // THIS SHOULD NOT BE SMALLER THAN ANY SPECIFIC VIEW DISTANCES
 		public static final Key<Boolean> RESOURCE_FRIENDLY = makeKey(new Key<Boolean>(false));
 		public static final Key<Integer> POSITION_UPDATE_TIME = makeKey(new Key<Integer>(2));
 		public static final Key<Double> MARGIN_BOTTOM = makeKey(new Key<Double>(.35D));

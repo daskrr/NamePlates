@@ -1,5 +1,6 @@
 package com.daskrr.nameplates.core;
 
+import com.daskrr.nameplates.api.nameplate.NamePlate;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -30,6 +31,7 @@ public class NamePlatesPlugin extends JavaPlugin
 	@Override
 	public void onDisable() {
 		// TODO: remove all nameplates, stop tickers
+		this.apiHandler.updater.ticker.cancel();
 	}
 	
 	public VersionProvider getVersionProvider() {

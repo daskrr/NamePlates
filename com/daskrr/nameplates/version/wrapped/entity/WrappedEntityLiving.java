@@ -1,10 +1,10 @@
 package com.daskrr.nameplates.version.wrapped.entity;
 
-import org.bukkit.World;
+import com.daskrr.nameplates.version.wrapper.entity.LivingEntityWrapper;
 import org.bukkit.entity.LivingEntity;
 
-public interface WrappedEntityLiving {
+public interface WrappedEntityLiving extends LivingEntityWrapper {
 
-    WrappedEntityLiving instantiate(LivingEntity livingEntity);
+    LivingEntityWrapper instantiate(LivingEntity livingEntity);
 
 }

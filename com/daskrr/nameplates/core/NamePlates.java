@@ -1,6 +1,5 @@
 package com.daskrr.nameplates.core;
 
-import com.daskrr.nameplates.api.NamePlateAPI;
 import com.daskrr.nameplates.api.NamePlateAPIOptions;
 import com.daskrr.nameplates.api.nameplate.NamePlate;
 import com.daskrr.nameplates.core.event.EventHandler;
@@ -15,8 +14,8 @@ public class NamePlates {
 	
 	protected final NamePlatesPlugin plugin;
 	private final NamePlateAPIOptions options;
-	private final NamePlateUpdater updater;
-	private final EventHandler eventHandler;
+	public final NamePlateUpdater updater;
+	protected final EventHandler eventHandler;
 
 	private int lastId = 0;
 
@@ -40,8 +39,9 @@ public class NamePlates {
 	public int addToPlayer(NamePlate plate, UUID player) {
 		int id = this.lastId++;
 
+		((IdentifiableNamePlate) plate).setId(id);
 		this.namePlates.put(id, plate);
-		this.entityGroups.put(id, EntityGroup.PLAYER.set(player));
+		this.entityGroups.put(id, EntityGroup.ENTITY.set(player));
 
 		return id;
 	}
@@ -49,8 +49,9 @@ public class NamePlates {
 	public int addToPlayers(NamePlate plate, UUID... players) {
 		int id = this.lastId++;
 
+		((IdentifiableNamePlate) plate).setId(id);
 		this.namePlates.put(id, plate);
-		this.entityGroups.put(id, EntityGroup.PLAYER.set(players));
+		this.entityGroups.put(id, EntityGroup.ENTITY.set(players));
 
 		return id;
 	}
@@ -58,6 +59,7 @@ public class NamePlates {
 	public int addToEntities(NamePlate plate, EntityType[] types, UUID... exclude) {
 		int id = this.lastId++;
 
+		((IdentifiableNamePlate) plate).setId(id);
 		this.namePlates.put(id, plate);
 		this.entityGroups.put(id, EntityGroup.ENTITY_TYPE.set(types).setExcluded(EntityGroup.ENTITY.set(exclude)));
 
@@ -67,6 +69,7 @@ public class NamePlates {
 	public int addToWorld(NamePlate plate, Location location) {
 		int id = this.lastId++;
 
+		((IdentifiableNamePlate) plate).setId(id);
 		this.staticNamePlates.put(id, plate);
 		this.staticLocations.put(id, location);
 

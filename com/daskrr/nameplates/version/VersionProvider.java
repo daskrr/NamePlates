@@ -1,10 +1,10 @@
 package com.daskrr.nameplates.version;
 
 import com.daskrr.nameplates.core.NamePlatesPlugin;
+import com.daskrr.nameplates.version.wrapped.WrappedItem;
 import org.bukkit.Bukkit;
 
 import com.daskrr.nameplates.version.NMSRegistry.VersionRegistry;
-import com.daskrr.nameplates.version.NMSRegistry.WrappedItem;
 
 public class VersionProvider {
 
@@ -23,6 +23,9 @@ public class VersionProvider {
         
         this.version = Version.fromString(bukkitVersion);
         this.registry = this.version.getRegistry();
+
+		if (this.registry == null)
+			throw new VersionNotSupportedException("The version of your server is not yet supported by "+ NamePlatesPlugin.PLUGIN_NAME, bukkitVersion, null);
 	}
 	
 	
@@ -30,8 +33,8 @@ public class VersionProvider {
 		return this.version;
 	}
 	
-	public <T> T getItem(WrappedItem<T> item) {
-		return this.registry.get(item);
+	public static <T> T getItem(WrappedItem<T> item) {
+		return getInstance().registry.get(item);
 	}
 
 	public static VersionProvider getInstance() {
