@@ -1,4 +1,4 @@
-package com.daskrr.nameplates.core.event;
+package com.daskrr.nameplates.api.event;
 
 public @interface NamePlateEventHandler {
 }

@@ -31,4 +31,13 @@ public class EntityUtils {
 
         return null;
     }
+
+    public static Entity getEntity(UUID uuid) {
+        for (World world : Bukkit.getWorlds())
+            for (Entity entity : world.getEntities())
+                if (entity.getUniqueId().equals(uuid))
+                    return entity;
+
+        return null;
+    }
 }

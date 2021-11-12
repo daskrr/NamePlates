@@ -2,6 +2,7 @@ package com.daskrr.nameplates.version.v1_8_R1.entity;
 
 import com.daskrr.nameplates.version.wrapped.entity.WrappedEntityLiving;
 import com.daskrr.nameplates.version.wrapper.entity.LivingEntityWrapper;
+import net.minecraft.server.v1_8_R1.EntityCreature;
 import net.minecraft.server.v1_8_R1.EntityLiving;
 import org.bukkit.craftbukkit.v1_8_R1.entity.CraftLivingEntity;
 import org.bukkit.entity.LivingEntity;

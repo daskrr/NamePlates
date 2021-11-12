@@ -1,7 +1,7 @@
 package com.daskrr.nameplates.api;
 
 import com.daskrr.nameplates.api.nameplate.NamePlate;
-import com.daskrr.nameplates.core.NamePlates;
+import com.daskrr.nameplates.core.NamePlateHandler;
 import com.daskrr.nameplates.core.NamePlatesPlugin;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.EntityType;
@@ -9,8 +9,11 @@ import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-public class NamePlateAPI extends NamePlates {
-	
+public class NamePlateAPI extends NamePlateHandler {
+
+	// TODO MAKE THIS INDEPENDENT OF THE HANDLER
+	// assign a field with the handler and use it here, to control access to the handler's data (prevent stupid user errors)
+
 	private NamePlateAPI(NamePlatesPlugin plugin) {
 		super(plugin);
 	}

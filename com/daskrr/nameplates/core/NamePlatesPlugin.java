@@ -1,6 +1,5 @@
 package com.daskrr.nameplates.core;
 
-import com.daskrr.nameplates.api.nameplate.NamePlate;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 

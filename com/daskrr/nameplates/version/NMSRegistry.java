@@ -2,6 +2,7 @@ package com.daskrr.nameplates.version;
 
 import java.util.function.Supplier;
 
+import com.daskrr.nameplates.version.v1_8_R1.Utils_v1_8_R1;
 import com.daskrr.nameplates.version.v1_8_R1.entity.DataWatcher_v1_8_R1;
 import com.daskrr.nameplates.version.v1_8_R1.entity.EntityArmorStand_v1_8_R1;
 import com.daskrr.nameplates.version.v1_8_R1.entity.EntityLiving_v1_8_R1;
@@ -30,6 +31,7 @@ public class NMSRegistry {
 				Pair.of(WrappedItem.ENTITY_ARMOR_STAND, EntityArmorStand_v1_8_R1::new),
 
 				Pair.of(WrappedItem.DATA_WATCHER, DataWatcher_v1_8_R1::new),
+				Pair.of(WrappedItem.UTILS, Utils_v1_8_R1::new),
 
 				Pair.of(WrappedItem.RAY_TRACE, RayTrace_v1_8_R1::new),
 				Pair.of(WrappedItem.RAY_TRACE_RESULT, RayTraceResult_v1_8_R1::new)

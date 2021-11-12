@@ -117,8 +117,7 @@ public class NamePlateTextBuilder implements Serializeable {
 		}
 		public Line append (Component component) {
 		    this.contents.add(component);
-		    
-		    // trigger change, add context to component
+
 		    return this;
 		}
 		public Line prepend (String text) {
@@ -126,8 +125,7 @@ public class NamePlateTextBuilder implements Serializeable {
 		}
 		public Line prepend (Component component) {
 		    this.contents.add(0, component);
-		    
-		    // trigger change, add context to component
+
 		    return this;
 		}
 		

@@ -25,6 +25,7 @@ public class WrappedItem<T> {
     public static final WrappedItem<WrappedEntityArmorStand> ENTITY_ARMOR_STAND = new WrappedItem<WrappedEntityArmorStand>();
 
     public static final WrappedItem<WrappedDataWatcher> DATA_WATCHER = new WrappedItem<WrappedDataWatcher>();
+    public static final WrappedItem<WrappedUtils> UTILS = new WrappedItem<WrappedUtils>();
 
     public static final WrappedItem<WrappedRayTrace> RAY_TRACE = new WrappedItem<WrappedRayTrace>();
     public static final WrappedItem<WrappedRayTraceResult> RAY_TRACE_RESULT = new WrappedItem<WrappedRayTraceResult>();

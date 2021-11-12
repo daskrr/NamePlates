@@ -6,8 +6,8 @@ import java.util.UUID;
 import com.daskrr.nameplates.api.NamePlateAPI;
 import com.daskrr.nameplates.api.NamePlateAPIOptions;
 import com.daskrr.nameplates.core.EntityGroup;
-import com.daskrr.nameplates.core.IdentifiableNamePlate;
-import com.daskrr.nameplates.core.NamePlates;
+import com.daskrr.nameplates.core.ContextNamePlate;
+import com.daskrr.nameplates.core.NamePlateHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -15,19 +15,21 @@ import com.daskrr.nameplates.core.serialize.ByteDataSerializer;
 import com.daskrr.nameplates.core.serialize.Serializeable;
 import com.google.common.collect.Lists;
 
-public class NamePlate extends IdentifiableNamePlate implements Serializeable {
-	
+public class NamePlate extends ContextNamePlate implements Serializeable {
+
+	// modifications applied to this, will require manual API#update or this#update
 	private final NamePlateTextBuilder builder;
 	
 	private double marginBottom;
 	private boolean resourceFriendly;
 	private int viewDistance;
 	private boolean renderBehindWalls;
+	private boolean renderPermanently;
 	
 	private int id = -1;
-	private EntityGroup<?> group;
+	private EntityGroup<?> group = null;
 	public List<UUID> viewers = Lists.newArrayList();
-	private List<UUID> disallowedPlayers = Lists.newArrayList();
+	protected List<UUID> disallowedPlayers = Lists.newArrayList();
 	
 	public NamePlate(String... lines) {
 		this(new NamePlateTextBuilder(lines));
@@ -46,26 +48,32 @@ public class NamePlate extends IdentifiableNamePlate implements Serializeable {
 	
 	public NamePlate setMarginBottom(double margin) {
 	    this.marginBottom = margin;
-		((NamePlates) NamePlateAPI.getInstance()).updater.update(this.id);
+		this.update();
 	    return this;
 	}
 	    
 	public NamePlate setResourceFriendly(boolean resourceFriendly) {
 	    this.resourceFriendly = resourceFriendly;
-		((NamePlates) NamePlateAPI.getInstance()).updater.update(this.id);
+		this.update();
 	    return this;
 	}
 	    
 	public NamePlate setViewDistance(int viewDistance) {
 	    this.viewDistance = viewDistance;
-		((NamePlates) NamePlateAPI.getInstance()).updater.update(this.id);
+		this.update();
 	    return this;
 	}
 	    
 	public NamePlate setRenderBehindWalls(boolean renderBehindWalls) {
 	    this.renderBehindWalls = renderBehindWalls;
-		((NamePlates) NamePlateAPI.getInstance()).updater.update(this.id);
+		this.update();
 	    return this;
+	}
+
+	public NamePlate setRenderPermanently(boolean renderPermanently) {
+		this.renderPermanently = renderPermanently;
+		this.update();
+		return this;
 	}
 	
 	
@@ -80,6 +88,9 @@ public class NamePlate extends IdentifiableNamePlate implements Serializeable {
 	}
 	public boolean getRenderBehindWalls() {
 	    return this.renderBehindWalls;
+	}
+	public boolean getRenderPermanently() {
+		return this.renderPermanently;
 	}
 	
 	public NamePlateTextBuilder getBuilder() {
@@ -96,6 +107,9 @@ public class NamePlate extends IdentifiableNamePlate implements Serializeable {
 		return this.id != -1;
 	}
 	public Player[] getViewers() {
+		if (!this.inContext())
+			return null;
+
 		List<Player> viewers = Lists.newArrayList();
 		
 		for (UUID playerUUID : this.viewers) {
@@ -119,15 +133,30 @@ public class NamePlate extends IdentifiableNamePlate implements Serializeable {
 		this.builder.setContext(id);
 	}
 
+	@Override
+	protected void setGroup(EntityGroup<?> group) {
+		this.group = group;
+	}
+
+	// updates render
+	public void update() {
+		if (this.inContext())
+			((NamePlateHandler) NamePlateAPI.getInstance()).updater.update(this.id);
+	}
+
 	// IN CONTEXT END
 
 	public void disableView(Player... players) {
 		for (Player player : players) this.disallowedPlayers.add(player.getUniqueId());
-		((NamePlates) NamePlateAPI.getInstance()).updater.update(this.id);
+		this.update();
 	}
 	public void enableView(Player... players) {
 		for (Player player : players) this.disallowedPlayers.remove(player.getUniqueId());
-		((NamePlates) NamePlateAPI.getInstance()).updater.update(this.id);
+		this.update();
+	}
+
+	public List<UUID> getDisabledViewPlayers() {
+		return Lists.newArrayList(this.disallowedPlayers);
 	}
 	
 	
