@@ -1,6 +1,7 @@
 package com.daskrr.nameplates.version.wrapper.entity;
 
 import com.daskrr.nameplates.version.wrapped.entity.WrappedDataWatcher;
+import org.bukkit.Location;
 
 public interface EntityWrapper {
 
@@ -9,4 +10,6 @@ public interface EntityWrapper {
     String getName();
 
     WrappedDataWatcher getDataWatcher();
+
+    void setPosition(Location location);
 }

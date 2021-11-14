@@ -14,9 +14,8 @@ import com.daskrr.nameplates.version.wrapped.network.protocol.WrappedPacketGameE
 import com.daskrr.nameplates.version.wrapped.network.protocol.WrappedPacketGameEntityMetadata;
 import com.daskrr.nameplates.version.wrapped.network.protocol.WrappedPacketGameSpawnEntityLiving;
 import com.daskrr.nameplates.version.wrapped.world.WrappedRayTraceResult;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -34,7 +33,7 @@ public class RenderManager {
     private static final double OFFSET = .275D;
     private static final double PLATE_HEIGHT = .25D;
 
-    public final BiMap<UUID, RenderedNamePlate> renderedPlates = HashBiMap.create();
+    public final Map<UUID, RenderedNamePlate> renderedPlates = Maps.newHashMap();
     //                   Player  Entity
     public final List<Pair<UUID, UUID>> cancelledAttachEntities = Lists.newArrayList();
 
@@ -45,121 +44,79 @@ public class RenderManager {
 
     // checks for entities that can be seen and renders their plates
     // checks for entities that cannot be seen and un-renders their plates, telling the movement manager to not move them
-    // this also updates the viewers of the NamePlate
-    @SuppressWarnings("unchecked")
+    // this also updates the viewers of the NamePlate, RenderedNamePlate
     public void tick() {
         // get view distance
         int viewDistance = updater.namePlateHandler.getOptions().getOption(NamePlateAPIOptions.Key.VIEW_DISTANCE).getValue();
         // loop through all players
         Bukkit.getOnlinePlayers().forEach((player) -> {
             // check for nearby entities
-            player.getNearbyEntities(viewDistance, 255, viewDistance).forEach((entity) -> {
-                // check for visibility if renderBehindWalls is disabled
-                if (updater.namePlateHandler.getOptions().getOption(NamePlateAPIOptions.Key.RENDER_BEHIND_WALLS).getValue()) {
-                    // ray trace the entity
-                    Location playerLocation = player.getLocation();
-                    Location entityLocation = entity.getLocation().add(0, 2, 0); // get the block above the entity, checking if the head is visible (I think)
-                    Vector vectorToEntity = playerLocation.toVector().subtract(entityLocation.toVector());
+            List<Entity> nearbyEntities;
+            (nearbyEntities = player.getNearbyEntities(viewDistance, 255, viewDistance)).forEach((entity) -> {
+                // get nameplate
+                NamePlate namePlate = this.updater.namePlateHandler.getNamePlateOf(entity.getUniqueId(), false);
 
-                    WrappedRayTraceResult result = VersionProvider.getItem(WrappedItem.RAY_TRACE).rayTrace(playerLocation, vectorToEntity, 160);
-                    if (result.getHitBlock() != null) {
-                        // didn't hit the entity
-                        // check if player is disabled from viewing any entities
-                        if (updater.namePlateHandler.disabledPlayers.contains(player.getUniqueId()))
-                            return;
-
-                        // try to get the plate
-                        RenderedNamePlate renderedNamePlate = this.renderedPlates.get(entity.getUniqueId());
-
-                        // plate exists
-                        if (renderedNamePlate != null) {
-                            // check for its own view distance
-                            if (renderedNamePlate.getPlate().getViewDistance() > player.getLocation().distance(entityLocation))
-                                return;
-
-                            // check if plate is rendered permanently
-                            if (renderedNamePlate.getPlate().getRenderPermanently())
-                                return;
-
-                            // remove it from render
-                            this.remove(player, renderedNamePlate, entity);
-                            // remove the player from the viewers list
-                            renderedNamePlate.getPlate().viewers.remove(player.getUniqueId());
-                        }
-                    }
-                    else {
-                        // get nameplate for entity (if any)
-                        int plateId = -1;
-                        for (Map.Entry<Integer, EntityGroup<?>> entry : this.updater.namePlateHandler.entityGroups.entrySet()) {
-                            EntityGroup<?> group = entry.getValue();
-                            if (group.getType() == EntityGroup.Type.ENTITY_TYPE) {
-                                if (!Lists.newArrayList(((EntityGroup<EntityType>) group).get()).contains(entity.getType()))
-                                    return;
-                            }
-                            else
-                                if (!Lists.newArrayList(((EntityGroup<UUID>) group).get()).contains(entity.getUniqueId()))
-                                    return;
-                            plateId = entry.getKey();
-                        }
-
-                        // check for results
-                        if (plateId > -1) {
-                            NamePlate namePlate = this.updater.namePlateHandler.namePlates.get(plateId);
-
-                            // check if player is disabled from view
-                            if (updater.namePlateHandler.disabledPlayers.contains(player.getUniqueId()))
-                                return;
-
-                            // check if player is disallowed from view in plate context
-                            if (namePlate.getDisabledViewPlayers().contains(player.getUniqueId()))
-                                return;
-
-                            // render plates
-                            this.render(player, namePlate, entity);
-                            // update viewing players
-                            namePlate.viewers.add(player.getUniqueId());
-                        }
-                    }
+                // things change
+                // check if entity still has nameplate
+                if (namePlate == null) {
+                    // remove from rendered (since entities can be excluded after instantiation)
+                    this.removePermanently(entity);
+                    return; // continue forEach
                 }
-                // entities can be rendered behind walls
-                else {
-                    // get nameplate for entity (if any)
-                    int plateId = -1;
-                    for (Map.Entry<Integer, EntityGroup<?>> entry : this.updater.namePlateHandler.entityGroups.entrySet()) {
-                        EntityGroup<?> group = entry.getValue();
-                        if (group.getType() == EntityGroup.Type.ENTITY_TYPE) {
-                            if (!Lists.newArrayList(((EntityGroup<EntityType>) group).get()).contains(entity.getType()))
-                                return;
-                        }
-                        else
-                        if (!Lists.newArrayList(((EntityGroup<UUID>) group).get()).contains(entity.getUniqueId()))
-                            return;
-                        plateId = entry.getKey();
+
+                // nameplate exists, get rendered plate
+                RenderedNamePlate renderedNamePlate = this.renderedPlates.get(entity.getUniqueId());
+
+                // also updating the namePlate of the RenderedNamePlate is required, since the plate can change too
+                renderedNamePlate.setPlate(namePlate);
+
+                // this is kind of redundant, as the namePlate would be null if this were true, since it's automatically
+                // not returned if it's excluded
+                // TODO check
+                // check if entity is excluded from nameplate
+                if (Lists.newArrayList(namePlate.getSharedGroup().getExcluded()).contains(entity.getUniqueId()))
+                    return; // continue forEach
+
+                // check if rendering behind walls is globally allowed
+                if (!updater.namePlateHandler.getOptions().getOption(NamePlateAPIOptions.Key.RENDER_BEHIND_WALLS).getValue()) {
+                    // rendering behind walls is not globally allowed
+                    // check if nameplate allows rendering behind walls
+                    if (!namePlate.getRenderBehindWalls()) {
+                        // nameplate doesn't, so
+                        // ray trace the entity
+                        // gets removed automatically if result is true
+                        if (this.isVisible(player, entity, viewDistance))
+                            // not behind a wall
+                            this.conditionedRender(renderedNamePlate, player, entity);
                     }
-
-                    // check for results
-                    if (plateId > -1) {
-                        NamePlate namePlate = this.updater.namePlateHandler.namePlates.get(plateId);
-
-                        // check if player is disabled from view
-                        if (updater.namePlateHandler.disabledPlayers.contains(player.getUniqueId()))
-                            return;
-
-                        // check if player is disallowed from view in plate context
-                        if (namePlate.getDisabledViewPlayers().contains(player.getUniqueId()))
-                            return;
-
-                        // render plates
-                        this.render(player, namePlate, entity);
-                        // update viewing players
-                        namePlate.viewers.add(player.getUniqueId());
-                    }
+                    // nameplate settings says entity can render behind walls
+                    else
+                        this.conditionedRender(renderedNamePlate, player, entity);
                 }
+                else
+                    // rendering behind walls is globally allowed
+                    // check if nameplate allows it
+                    if (!namePlate.getRenderBehindWalls())
+                        // doesn't allow it, check if the entity is behind a wall
+                        // gets removed automatically if result is true
+                        if (this.isVisible(player, entity, viewDistance))
+                            // not behind a wall
+                            this.conditionedRender(renderedNamePlate, player, entity);
+                    else
+                        // nameplate doesn't care about walls either
+                        this.conditionedRender(renderedNamePlate, player, entity);
+
             });
 
+            // TODO this can be done by checking the entity against the entity list of surrounding entities instead of distance
             // remove entities outside the view distance
             // iterate through the rendered plates
             this.renderedPlates.forEach((entityUUID, renderedNamePlate) -> {
+                // check if entity is nearby to the player (in view range)
+                for (Entity nearbyEntity : nearbyEntities)
+                    if (nearbyEntity.getUniqueId().equals(entityUUID))
+                        return;
+
                 // get entity
                 Entity entity = EntityUtils.getEntityInLoadedChunks(entityUUID);
                 if (entity == null)
@@ -172,26 +129,103 @@ public class RenderManager {
                 // get distance between player and entity
                 double distance = player.getLocation().distance(entity.getLocation());
 
+                //-------------- TODO probably remove this?
                 // check if entity is in default view
                 // if not, remove it
                 if (viewDistance < distance) {
                     // remove from render
                     this.remove(player, renderedNamePlate, entity);
-                    // remove the player from the viewers list
-                    renderedNamePlate.getPlate().viewers.remove(player.getUniqueId());
+                    return;
                 }
+                //--------------
 
                 // check if the entity is in plate's view
                 // if not, remove it
                 if (renderedNamePlate.getPlate().getViewDistance() < distance) {
                     // remove from render
                     this.remove(player, renderedNamePlate, entity);
-                    // remove the player from the viewers list
-                    renderedNamePlate.getPlate().viewers.remove(player.getUniqueId());
                 }
             });
         });
     }
+
+    // tick internal
+    // isNotBehindWall
+    private boolean isVisible(Player player, Entity entity, int viewDistance) {
+        Location playerLocation = player.getEyeLocation();
+        Location entityLocation = entity.getLocation();
+        if (entity instanceof LivingEntity livingEntity)
+            entityLocation = livingEntity.getEyeLocation();
+        else
+            entityLocation.add(0, VersionProvider.getItem(WrappedItem.ENTITY).instantiate(entity).getHeight(), 0);
+
+        Vector vectorToEntity = playerLocation.toVector().subtract(entityLocation.toVector());
+
+        WrappedRayTraceResult result = VersionProvider.getItem(WrappedItem.RAY_TRACE).rayTrace(playerLocation, vectorToEntity, viewDistance);
+        // raytrace says it's behind wall
+        if (result.getHitBlock() != null) {
+            // didn't hit the entity
+
+            // check block transparency, solidity and fluidity
+            if (!result.getHitBlock().getType().isOccluding()
+            ||  result.getHitBlock().getType().isTransparent()
+            || !result.getHitBlock().getType().isSolid()
+            || result.getHitBlock().isLiquid())
+                return true;
+            // TODO raytrace past this block, see if there's other blocks blocking the entity
+
+            // check if player is disabled from viewing any entities
+            if (updater.namePlateHandler.disabledPlayers.contains(player.getUniqueId()))
+                return false;
+
+            // try to get the plate
+            RenderedNamePlate renderedNamePlate = this.renderedPlates.get(entity.getUniqueId());
+
+            // plate exists
+            if (renderedNamePlate != null) {
+                // check if plate is rendered permanently
+                if (renderedNamePlate.getPlate().getRenderPermanently())
+                    return true;
+
+                // check for its own view distance
+                if (renderedNamePlate.getPlate().getViewDistance() > player.getLocation().distance(entityLocation))
+                    return false;
+
+                // remove it from render
+                this.remove(player, renderedNamePlate, entity);
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void conditionedRender(RenderedNamePlate renderedNamePlate, Player player, Entity entity) {
+        NamePlate namePlate = renderedNamePlate.getPlate();
+        // check if player is disabled from view
+        if (updater.namePlateHandler.disabledPlayers.contains(player.getUniqueId()))
+            return;
+
+        // check if player is disallowed from view in plate context
+        if (namePlate.getDisabledViewPlayers().contains(player.getUniqueId()))
+            return;
+
+        // get distance between player and entity
+        double distance = player.getLocation().distance(entity.getLocation());
+
+        // check if the entity is in plate's view
+        // if not, don't render it
+        if (namePlate.getViewDistance() < distance)
+            return;
+
+        // render plates
+        this.render(player, namePlate, entity);
+        // update viewing players
+        ((ContextNamePlate) namePlate).getViewersSet().add(player.getUniqueId());
+        renderedNamePlate.getViewers().add(player.getUniqueId());
+    }
+
 
     // gets rendered plate by id
     public Pair<UUID, RenderedNamePlate> getRenderedNamePlate(int id) {
@@ -216,9 +250,12 @@ public class RenderManager {
                     return;
 
         RenderedNamePlate renderedNamePlate;
-        if (!NamePlateFactory.getInstance().contains(entityUUID)) {
-            final boolean[] cancelled = {false};
-            // fire event for first attach
+        // check if the NamePlate is already in render
+        if (!this.renderedPlates.containsKey(entityUUID)) {
+            // not being rendered to any player
+
+            final boolean[] cancelled = { false };
+            // fire event for attach
             this.updater.namePlateHandler.eventHandler.fireEvent(new NamePlateAttachEvent() {
                 @Override
                 public Entity getEntity() {
@@ -247,14 +284,19 @@ public class RenderManager {
                 return;
             }
 
-            renderedNamePlate = NamePlateFactory.getInstance().create(entityUUID, plate);
+            renderedNamePlate = new RenderedNamePlate(plate, false);
         }
         else {
-            renderedNamePlate = NamePlateFactory.getInstance().get(entityUUID);
+            // the plate is already rendered to at least 1 player
+            renderedNamePlate = this.renderedPlates.get(entityUUID);
 
-            // create the plates
+            // create the "plates" (armor stands)
             renderedNamePlate.putArmorStands(this.createArmorStands(plate, attachedTo));
         }
+
+        // update renderedNamePlate on the nameplate
+        // just in case something changed
+        renderedNamePlate.setPlate(plate);
 
         // render the plates
         this.sendArmorStands(false, player, plate, renderedNamePlate.getArmorStands(), attachedTo);
@@ -263,7 +305,8 @@ public class RenderManager {
         if (!this.renderedPlates.containsKey(entityUUID))
             this.renderedPlates.put(entityUUID, renderedNamePlate);
 
-        // fire event
+        // fire render toggle event
+        // this will fire every time a player is sent a render of a plate
         this.updater.namePlateHandler.eventHandler.fireEvent(new NamePlateRenderToggleEvent() {
             @Override
             public Player getPlayer() {
@@ -284,22 +327,59 @@ public class RenderManager {
             public Entity getEntity() {
                 return attachedTo;
             }
+
+            @Override
+            public RenderType getRenderType() {
+                return RenderType.ADD;
+            }
         });
     }
 
     private void remove(Player player, RenderedNamePlate renderedNamePlate, Entity attachedTo) {
         this.removeArmorStands(player, renderedNamePlate.getArmorStands());
+        // remove the player from the viewers list
+        ((ContextNamePlate) renderedNamePlate.getPlate()).getViewersSet().remove(player.getUniqueId());
+        renderedNamePlate.getViewers().remove(player.getUniqueId());
         // remove if it's no longer being rendered to any player
-        if (renderedNamePlate.getPlate().getViewers().length == 0)
+        if (renderedNamePlate.getViewers().size() == 0)
             this.renderedPlates.remove(attachedTo.getUniqueId());
+
+        // fire render toggle event
+        // this will fire every time a player is sent an un-render of a plate
+        this.updater.namePlateHandler.eventHandler.fireEvent(new NamePlateRenderToggleEvent() {
+            @Override
+            public Player getPlayer() {
+                return player;
+            }
+
+            @Override
+            public World getWorld() {
+                return null; // TODO render for static nameplates
+            }
+
+            @Override
+            public NamePlate getNamePlate() {
+                return renderedNamePlate.getPlate();
+            }
+
+            @Override
+            public Entity getEntity() {
+                return attachedTo;
+            }
+
+            @Override
+            public RenderType getRenderType() {
+                return RenderType.REMOVE;
+            }
+        });
     }
 
     public NamePlate removePermanently(Entity attachedTo) {
-        NamePlate namePlate = this.renderedPlates.get(attachedTo.getUniqueId()).getPlate();
+        RenderedNamePlate renderedNamePlate = this.renderedPlates.get(attachedTo.getUniqueId());
+        if (renderedNamePlate == null) return null;
 
-        Bukkit.getOnlinePlayers().forEach((player) -> this.removeArmorStands(player, this.renderedPlates.get(attachedTo.getUniqueId()).getArmorStands()));
-        this.renderedPlates.remove(attachedTo.getUniqueId());
-        NamePlateFactory.getInstance().remove(attachedTo.getUniqueId());
+        // remove plate from all players
+        Bukkit.getOnlinePlayers().forEach((player) -> this.remove(player, renderedNamePlate, attachedTo));
 
         // remove from cancelledAttachEntities to prevent pollution
         this.cancelledAttachEntities.forEach(pair -> {
@@ -307,7 +387,7 @@ public class RenderManager {
                 this.cancelledAttachEntities.remove(pair);
         });
 
-        return namePlate;
+        return renderedNamePlate.getPlate();
     }
 
     protected ArmorStand[] createArmorStands(NamePlate plate, Entity entity) {

@@ -7,6 +7,7 @@ import com.daskrr.nameplates.version.wrapped.entity.WrappedEntityLiving;
 import com.daskrr.nameplates.version.wrapped.network.WrappedNetworkManager;
 import com.daskrr.nameplates.version.wrapped.network.protocol.WrappedPacketGameEntityDestroy;
 import com.daskrr.nameplates.version.wrapped.network.protocol.WrappedPacketGameEntityMetadata;
+import com.daskrr.nameplates.version.wrapped.network.protocol.WrappedPacketGameEntityTeleport;
 import com.daskrr.nameplates.version.wrapped.network.protocol.WrappedPacketGameSpawnEntityLiving;
 import com.daskrr.nameplates.version.wrapped.world.WrappedRayTrace;
 import com.daskrr.nameplates.version.wrapped.world.WrappedRayTraceResult;
@@ -19,6 +20,7 @@ public class WrappedItem<T> {
     public static final WrappedItem<WrappedPacketGameSpawnEntityLiving> PACKET_GAME_SPAWN_ENTITY_LIVING = new WrappedItem<WrappedPacketGameSpawnEntityLiving>();
     public static final WrappedItem<WrappedPacketGameEntityDestroy> PACKET_GAME_DESTROY_ENTITY = new WrappedItem<WrappedPacketGameEntityDestroy>();
     public static final WrappedItem<WrappedPacketGameEntityMetadata> PACKET_GAME_ENTITY_METADATA = new WrappedItem<WrappedPacketGameEntityMetadata>();
+    public static final WrappedItem<WrappedPacketGameEntityTeleport> PACKET_GAME_ENTITY_TELEPORT = new WrappedItem<WrappedPacketGameEntityTeleport>();
 
     public static final WrappedItem<WrappedEntity> ENTITY = new WrappedItem<WrappedEntity>();
     public static final WrappedItem<WrappedEntityLiving> ENTITY_LIVING = new WrappedItem<WrappedEntityLiving>();

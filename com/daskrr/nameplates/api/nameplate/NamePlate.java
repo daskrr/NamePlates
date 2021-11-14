@@ -1,6 +1,7 @@
 package com.daskrr.nameplates.api.nameplate;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import com.daskrr.nameplates.api.NamePlateAPI;
@@ -8,6 +9,8 @@ import com.daskrr.nameplates.api.NamePlateAPIOptions;
 import com.daskrr.nameplates.core.EntityGroup;
 import com.daskrr.nameplates.core.ContextNamePlate;
 import com.daskrr.nameplates.core.NamePlateHandler;
+import com.daskrr.nameplates.core.NamePlatesPlugin;
+import com.google.common.collect.Sets;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -28,7 +31,7 @@ public class NamePlate extends ContextNamePlate implements Serializeable {
 	
 	private int id = -1;
 	private EntityGroup<?> group = null;
-	public List<UUID> viewers = Lists.newArrayList();
+	private final Set<UUID> viewers = Sets.newHashSet();
 	protected List<UUID> disallowedPlayers = Lists.newArrayList();
 	
 	public NamePlate(String... lines) {
@@ -138,10 +141,15 @@ public class NamePlate extends ContextNamePlate implements Serializeable {
 		this.group = group;
 	}
 
+	@Override
+	protected Set<UUID> getViewersSet() {
+		return this.viewers;
+	}
+
 	// updates render
 	public void update() {
 		if (this.inContext())
-			((NamePlateHandler) NamePlateAPI.getInstance()).updater.update(this.id);
+			NamePlatesPlugin.instance().plateHandler.updater.update(this.id);
 	}
 
 	// IN CONTEXT END

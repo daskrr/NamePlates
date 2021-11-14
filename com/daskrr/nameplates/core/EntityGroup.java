@@ -6,32 +6,41 @@ import java.util.UUID;
 
 public class EntityGroup<T> {
 
-    public static final EntityGroup<EntityType> ENTITY_TYPE = new EntityGroup<>(Type.ENTITY_TYPE);
-    public static final EntityGroup<UUID> ENTITY = new EntityGroup<>(Type.ENTITY);
+    public static final EntityGroup<EntityType> ENTITY_TYPE = create(new EntityGroup<>(Type.ENTITY_TYPE));
+    public static final EntityGroup<UUID> ENTITY = create(new EntityGroup<>(Type.ENTITY));
 
     private final Type type;
 
     private T[] who;
-    private EntityGroup<?> excluded;
+    private UUID[] excluded = null;
 
     private EntityGroup(Type type) {
         this.type = type;
+    }
+    private EntityGroup(EntityGroup<T> group) {
+        this.who = group.who;
+        this.type = group.type;
+        this.excluded = group.excluded;
     }
 
     public EntityGroup<T> set(T... who) {
         this.who = who;
         return this;
     }
-    public EntityGroup<T> setExcluded(EntityGroup<?> excluded) {
-        this.excluded = excluded;
 
+    // to add to docs: this is only used for Type.ENTITY_TYPE
+    public EntityGroup<T> setExcluded(UUID... excluded) {
+        if (this.type != Type.ENTITY_TYPE)
+            return this;
+
+        this.excluded = excluded;
         return this;
     }
 
     public T[] get() {
         return this.who;
     }
-    public EntityGroup<?> getExcluded() {
+    public UUID[] getExcluded() {
         return this.excluded;
     }
 
@@ -39,7 +48,11 @@ public class EntityGroup<T> {
         return this.type;
     }
 
-    public static enum Type {
+    private static <T> EntityGroup<T> create(EntityGroup<T> group) {
+        return new EntityGroup<T>(group);
+    }
+
+    public enum Type {
         ENTITY_TYPE, ENTITY;
     }
 }

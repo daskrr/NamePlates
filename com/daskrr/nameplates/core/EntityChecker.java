@@ -82,6 +82,7 @@ public class EntityChecker implements Listener {
         });
     }
 
+    // TODO change cause to match previous methods
     @SuppressWarnings("unchecked")
     private void entityDeath(Entity entity) {
         // this will remove the rendered plate from the entity for good
@@ -134,4 +135,6 @@ public class EntityChecker implements Listener {
             }
         });
     }
+
+    // TODO mounting and plateOverlapScenario
 }

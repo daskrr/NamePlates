@@ -10,6 +10,7 @@ import com.daskrr.nameplates.version.v1_8_R1.entity.Entity_v1_8_R1;
 import com.daskrr.nameplates.version.v1_8_R1.network.NetworkManager_v1_8_R1;
 import com.daskrr.nameplates.version.v1_8_R1.network.protocol.PacketGameEntityDestroy_v1_8_R1;
 import com.daskrr.nameplates.version.v1_8_R1.network.protocol.PacketGameEntityMetadata_v1_8_R1;
+import com.daskrr.nameplates.version.v1_8_R1.network.protocol.PacketGameEntityTeleport_v1_8_R1;
 import com.daskrr.nameplates.version.v1_8_R1.world.RayTraceResult_v1_8_R1;
 import com.daskrr.nameplates.version.v1_8_R1.world.RayTrace_v1_8_R1;
 import com.daskrr.nameplates.version.wrapped.WrappedItem;
@@ -25,6 +26,7 @@ public class NMSRegistry {
 				Pair.of(WrappedItem.PACKET_GAME_SPAWN_ENTITY_LIVING, PacketGameSpawnEntityLiving_v1_8_R1::new),
 				Pair.of(WrappedItem.PACKET_GAME_DESTROY_ENTITY, PacketGameEntityDestroy_v1_8_R1::new),
 				Pair.of(WrappedItem.PACKET_GAME_ENTITY_METADATA, PacketGameEntityMetadata_v1_8_R1::new),
+				Pair.of(WrappedItem.PACKET_GAME_ENTITY_TELEPORT, PacketGameEntityTeleport_v1_8_R1::new),
 
 				Pair.of(WrappedItem.ENTITY, Entity_v1_8_R1::new),
 				Pair.of(WrappedItem.ENTITY_LIVING, EntityLiving_v1_8_R1::new),

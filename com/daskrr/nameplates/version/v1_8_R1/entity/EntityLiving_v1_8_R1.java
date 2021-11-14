@@ -9,17 +9,15 @@ import org.bukkit.entity.LivingEntity;
 
 public class EntityLiving_v1_8_R1 extends Entity_v1_8_R1 implements WrappedEntityLiving {
 
-    private EntityLiving entityLiving;
-
     public EntityLiving_v1_8_R1() {  }
 
     public EntityLiving getEntityLiving() {
-        return entityLiving;
+        return (EntityLiving) this.entity;
     }
 
     @Override
     public LivingEntityWrapper instantiate(LivingEntity livingEntity) {
-        this.entityLiving = ((CraftLivingEntity) livingEntity).getHandle();
+        this.entity = ((CraftLivingEntity) livingEntity).getHandle();
         return this;
     }
 }

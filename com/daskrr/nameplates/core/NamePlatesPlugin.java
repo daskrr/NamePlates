@@ -12,6 +12,7 @@ public class NamePlatesPlugin extends JavaPlugin
 	public static final String PLUGIN_NAME = "EntityNamePlatesAPI";
 	
 	private VersionProvider versionProvider;
+	public NamePlateHandler plateHandler;
 	public NamePlateAPI apiHandler;
 	
 	@Override
@@ -23,14 +24,20 @@ public class NamePlatesPlugin extends JavaPlugin
 		} catch (VersionNotSupportedException e) {
 			getLogger().severe("There was an issue with your server version: " + e.getMessage());
 		}
-		
-		this.apiHandler = NamePlateAPI.getInstance();
+
+		this.plateHandler = new NamePlateHandler(this);
+		try {
+			this.apiHandler = new NamePlateAPI(this.plateHandler);
+		}
+		catch (InstantiationException e) {
+			; // this will never happen
+		}
 	}
 	
 	@Override
 	public void onDisable() {
 		// TODO: remove all nameplates, stop tickers
-		this.apiHandler.updater.ticker.cancel();
+		this.plateHandler.updater.ticker.cancel();
 	}
 	
 	public VersionProvider getVersionProvider() {

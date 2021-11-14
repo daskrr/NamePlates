@@ -3,13 +3,14 @@ package com.daskrr.nameplates.version.v1_8_R1.entity;
 import com.daskrr.nameplates.version.wrapped.entity.WrappedDataWatcher;
 import com.daskrr.nameplates.version.wrapper.entity.EntityWrapper;
 import com.daskrr.nameplates.version.wrapped.entity.WrappedEntity;
+import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_8_R1.entity.CraftEntity;
 import net.minecraft.server.v1_8_R1.Entity;
 
 
 public class Entity_v1_8_R1 implements WrappedEntity {
 
-    private Entity entity;
+    protected Entity entity;
 
     public Entity_v1_8_R1() {  }
 
@@ -35,6 +36,14 @@ public class Entity_v1_8_R1 implements WrappedEntity {
     @Override
     public WrappedDataWatcher getDataWatcher() {
         return new DataWatcher_v1_8_R1(this.entity.getDataWatcher());
+    }
+
+
+    @Override
+    public void setPosition(Location location) {
+        this.entity.setPosition(location.getX(), location.getY(), location.getZ());
+        this.entity.yaw = location.getYaw();
+        this.entity.pitch = location.getPitch();
     }
 
     @Override

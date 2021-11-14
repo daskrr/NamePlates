@@ -1,19 +1,20 @@
 package com.daskrr.nameplates.core;
 
 import com.daskrr.nameplates.api.nameplate.NamePlate;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import com.google.common.collect.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class NamePlateFactory {
+@Deprecated
+public class __NamePlateFactory {
 
-    private static final NamePlateFactory INSTANCE = new NamePlateFactory();
+    private static final __NamePlateFactory INSTANCE = new __NamePlateFactory();
 
-    private final BiMap<UUID, RenderedNamePlate> plates = HashBiMap.create();
+    private final Map<UUID, RenderedNamePlate> plates = Maps.newHashMap();
 
-    private NamePlateFactory() {  }
+    private __NamePlateFactory() {  }
 
     public RenderedNamePlate create(UUID uuid, NamePlate plate) {
         RenderedNamePlate renderedNamePlate = new RenderedNamePlate(plate, false);
@@ -57,7 +58,7 @@ public class NamePlateFactory {
         this.plates.remove(uuid);
     }
 
-    public static NamePlateFactory getInstance() {
+    public static __NamePlateFactory getInstance() {
         return INSTANCE;
     }
 }
