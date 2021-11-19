@@ -15,9 +15,9 @@ public class EntityUtils {
 
         for (int i = 0; i < 10; i++)
             if (i < currentSquares)
-                squares.append("§7§l=§r");
+                squares.append(color).append("§l§m=§r");
             else
-                squares.append(color).append("§l=§r");
+                squares.append("§7§l§m=§r");
 
         return squares.toString();
     }
@@ -39,5 +39,16 @@ public class EntityUtils {
                     return entity;
 
         return null;
+    }
+
+    // + to the right
+    // - to the left
+    public static float shiftYaw(float yaw, float amount) {
+        if (yaw + amount > 180f)
+            return -179.9f + ((yaw + amount) - 180f);
+        else if (yaw + amount < -179.9f)
+            return 180f + ((yaw + amount) + 180f);
+        else
+            return yaw + amount;
     }
 }

@@ -164,11 +164,11 @@ public class RayTraceResult_v1_8_R1 implements WrappedRayTraceResult {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof RayTraceResult_v1_8_R1 other)) return false;
-        if (!hitPosition.equals(other.hitPosition)) return false;
-        if (!Objects.equals(hitBlock, other.hitBlock)) return false;
-        if (!Objects.equals(hitBlockFace, other.hitBlockFace)) return false;
-        return Objects.equals(hitEntity, other.hitEntity);
+        if (!(obj instanceof RayTraceResult_v1_8_R1)) return false;
+        if (!hitPosition.equals(((RayTraceResult_v1_8_R1) obj).hitPosition)) return false;
+        if (!Objects.equals(hitBlock, ((RayTraceResult_v1_8_R1) obj).hitBlock)) return false;
+        if (!Objects.equals(hitBlockFace, ((RayTraceResult_v1_8_R1) obj).hitBlockFace)) return false;
+        return Objects.equals(hitEntity, ((RayTraceResult_v1_8_R1) obj).hitEntity);
     }
 
     @Override

@@ -13,16 +13,18 @@ import com.daskrr.nameplates.api.nameplate.NamePlateTextBuilder.Component.Compon
 import com.daskrr.nameplates.core.serialize.ByteDataSerializer;
 import com.daskrr.nameplates.core.serialize.Serializeable;
 import com.google.common.collect.Lists;
+import org.bukkit.inventory.ItemStack;
 
 public class NamePlateTextBuilder implements Serializeable {
 
 	protected int id = -1;
-	private final List<Line> lines = Lists.newArrayList();
+	private List<Line> lines = Lists.newArrayList();
 	
 	public NamePlateTextBuilder() {  }
 	
 	public NamePlateTextBuilder(String... lines) {
 		Lists.newArrayList(lines).forEach((line) -> this.lines.add(new Line(line)));
+		this.lines = Lists.reverse(this.lines);
 	}
 	
 	public NamePlateTextBuilder addLine (String line) {
@@ -91,11 +93,15 @@ public class NamePlateTextBuilder implements Serializeable {
 	
 	public static class Line implements Serializeable {
 		
-		private double[] margin;
+		private NamePlateAPIOptions.Option<Double[]> margin;
+		private double[] setMargin = null;
 		private List<Component> contents = Lists.newArrayList();
+
+		private boolean empty = false;
+		private ItemStack item = null;
 		
 		public Line() {
-			this.margin = ArrayUtils.toPrimitive(NamePlateAPI.getInstance().getOptions().getOption(NamePlateAPIOptions.Key.MARGIN).getValue());
+			this.margin = NamePlateAPI.getInstance().getOptions().getOption(NamePlateAPIOptions.Key.MARGIN);
 		}
 		
 		public Line(String text) {
@@ -108,9 +114,14 @@ public class NamePlateTextBuilder implements Serializeable {
 		}
 		
 		public Line(double marginTop, double marginBottom) {
-			this.margin = new double[] { marginTop, marginBottom };
+			this.setMargin = new double[] { marginTop, marginBottom };
 		}
-		
+
+		public Line(ItemStack item) {
+			this();
+			this.item = item;
+		}
+
 		
 		public Line append (String text) {
 		    return this.append(new Component(ComponentType.VARTEXT, text));
@@ -134,31 +145,65 @@ public class NamePlateTextBuilder implements Serializeable {
 		    return this.setMargin(margin, margin);
 		}
 		public Line setMargin(int marginTop, int marginBottom) {
-		    this.margin = new double[] { marginTop, marginBottom };
+		    this.setMargin = new double[] { marginTop, marginBottom };
 		    return this;
+		}
+
+		public Line setEmpty(boolean empty) {
+			this.empty = empty;
+			return this;
+		}
+		public Line setItem(ItemStack item) {
+			this.item = item;
+			return this;
 		}
 		
 		
 		public double[] getMargin() {
-		    return this.margin;
+		    return this.setMargin == null ? ArrayUtils.toPrimitive(this.margin.getValue()) : this.setMargin;
 		}
 		public Component getComponent(int index) {
 		    return this.contents.get(index);
 		}
 		public Component[] getComponents() {
-		    return this.contents.toArray(new Component[this.contents.size()]);
+		    return this.contents.toArray(new Component[0]);
+		}
+
+		public boolean isEmpty() {
+			return this.empty;
+		}
+		public ItemStack getItem() {
+			return this.item;
+		}
+
+		public boolean hasItem() {
+			return this.item != null;
 		}
 		
 		public void serialize(ByteDataSerializer serializer) {
-			serializer.writeDouble(this.margin[0]);
-			serializer.writeDouble(this.margin[1]);
+			byte options = 127;
+			if (this.setMargin == null)
+				options &= ~1;
+
+			serializer.writeByte(options);
+
+			if ((options & 1) == 1) {
+				serializer.writeDouble(this.setMargin[0]);
+				serializer.writeDouble(this.setMargin[1]);
+			}
+
 			serializer.writeListSerializeable(this.contents);
 		}
 		
 		public void deserialize(ByteDataSerializer serializer) {
-			this.margin = new double[2];
-			this.margin[0] = serializer.readDouble();
-			this.margin[1] = serializer.readDouble();
+			int options = serializer.readByte();
+
+			if ((options & 1) == 1) {
+				this.setMargin = new double[2];
+				this.setMargin[0] = serializer.readDouble();
+				this.setMargin[1] = serializer.readDouble();
+			}
+
 			this.contents = serializer.readListSerializeable(this.contents, (size) -> {
 				Component[] components = new Component[size];
 				for (int i = 0; i < size; i++) components[i] = new Component();
@@ -182,15 +227,15 @@ public class NamePlateTextBuilder implements Serializeable {
 		private boolean obfuscated = false;
 		
 		protected Component () {}
-		
+
 		public Component (ComponentType type) {
 			this(type, type.color);
 		}
-		
+
 		public Component (ComponentType type, ChatColor color) {
 			this(type, color, type.format);
 		}
-		
+
 		public Component (ComponentType type, String format) {
 			this(type, type.color, format);
 		}
@@ -289,7 +334,7 @@ public class NamePlateTextBuilder implements Serializeable {
 		}
 		
 		public void deserialize(ByteDataSerializer serializer) {
-			this.type = ComponentType.values()[serializer.readEnum()];
+			this.type = serializer.readEnum(ComponentType.class);
 			this.color = ChatColor.getByChar(serializer.readChar());
 			this.format = serializer.readString();
 
@@ -300,16 +345,33 @@ public class NamePlateTextBuilder implements Serializeable {
 			this.obfuscated = serializer.readBoolean();
 		}
 		
-		public static enum ComponentType {
-			ENTITY_HEALTH_INT (ChatColor.RED, "{HP}/{MAX}"),
-			ENTITY_HEALTH_SQUARES (ChatColor.RED, "{HP_SQUARES}"),
-			ENTITY_NAME (ChatColor.AQUA, "{NAME}"),
+		public enum ComponentType {
+			HEALTH_DISPLAY (ChatColor.RED, "{HP}/{HP_MAX}"),
+			HEALTH_DISPLAY_SQUARES (ChatColor.RED, "{HP_SQUARES}"),
+
+			HP (ChatColor.WHITE, "{HP}"),
+			HP_MAX (ChatColor.WHITE, "{HP_MAX}"),
+			NAME (ChatColor.WHITE, "{NAME}"),
+
+			ENTITY_HOLDING (ChatColor.WHITE, "{ENTITY_HOLDING}"),
+			ENTITY_HELMET (ChatColor.WHITE, "{ENTITY_HELMET}"),
+			ENTITY_CHESTPLATE (ChatColor.WHITE, "{ENTITY_CHESTPLATE}"),
+			ENTITY_LEGGINGS (ChatColor.WHITE, "{ENTITY_LEGGINGS}"),
+			ENTITY_BOOTS (ChatColor.WHITE, "{ENTITY_BOOTS}"),
+
+			ONLINE_PLAYERS (ChatColor.WHITE, "{ONLINE_PLAYERS}"),
+			MAX_PLAYERS (ChatColor.WHITE, "{MAX_PLAYERS}"),
+			VIEWING_PLAYER (ChatColor.WHITE, "{VIEWING_PLAYER}"),
+			VIEWING_PLAYER_DISPLAY_NAME (ChatColor.WHITE, "{VIEWING_PLAYER_DISPLAY_NAME}"),
+			TIME (ChatColor.WHITE, "{TIME}"), // TODO update
+			DATE (ChatColor.WHITE, "{DATE}"), // TODO update
+//			TIME_MINECRAFT (ChatColor.WHITE, "{TIME_MINECRAFT}"), TODO
 			VARTEXT (ChatColor.RESET, "");
 			
 			private final ChatColor color;
 			private final String format;
 			
-			private ComponentType(ChatColor color, String format) {
+			ComponentType(ChatColor color, String format) {
 				this.color = color;
 				this.format = format;
 			}

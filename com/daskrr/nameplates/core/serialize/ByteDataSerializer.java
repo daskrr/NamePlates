@@ -1,5 +1,6 @@
 package com.daskrr.nameplates.core.serialize;
 
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.UUID;
@@ -60,9 +61,16 @@ public class ByteDataSerializer{
 		short size = this.readShort();
 		return new String(this.readBytes(size).array());
 	}
-	
-	public int readEnum() {
-		return this.readInt();
+
+	@SuppressWarnings("unchecked")
+	public <T extends Enum<?>> T readEnum(Class<? extends T> enumeration)
+	{
+		try {
+			return (T) ((Enum<?>[]) enumeration.getDeclaredMethod("values").invoke(null))[this.byteBuf.readInt()];
+		}
+		catch (Throwable ignored) {  }
+
+		return null;
 	}
 	
 	public UUID readUUID() {

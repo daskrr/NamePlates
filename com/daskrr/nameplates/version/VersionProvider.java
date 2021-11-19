@@ -5,6 +5,7 @@ import com.daskrr.nameplates.version.wrapped.WrappedItem;
 import org.bukkit.Bukkit;
 
 import com.daskrr.nameplates.version.NMSRegistry.VersionRegistry;
+import org.bukkit.entity.EntityType;
 
 public class VersionProvider {
 
@@ -35,6 +36,10 @@ public class VersionProvider {
 	
 	public static <T> T getItem(WrappedItem<T> item) {
 		return getInstance().registry.get(item);
+	}
+
+	public static EntityType entityType(String id) {
+		return getInstance().registry.getEntityType(id);
 	}
 
 	public static VersionProvider getInstance() {

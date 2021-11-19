@@ -14,12 +14,16 @@ import java.util.UUID;
 
 public class NamePlateAPI {
 
+	private static boolean instantiated = false;
+
 	protected NamePlateHandler handler;
 
 	public NamePlateAPI(NamePlateHandler handler) throws InstantiationException {
-		if (NamePlatesPlugin.instance().apiHandler != null)
+		if (instantiated)
 			throw new InstantiationException("NamePlateAPI has already been instantiated.");
 		this.handler = handler;
+
+		instantiated = true;
 	}
 
 	// setters
@@ -62,10 +66,18 @@ public class NamePlateAPI {
 	}
 
 	public int addToWorld(NamePlate plate, Location location) {
+		return this.addToWorld(plate, new BlockLocation(location));
+	}
+	public int addToWorld(NamePlate plate, BlockLocation location) {
 		return this.handler.addToWorld(plate, location);
 	}
 
 	// getters
+
+	// universal, applies to static plates too
+	public NamePlate getNamePlate(int id) {
+		return this.handler.getNamePlate(id);
+	}
 
 	// get nameplate of an existing specified entity(/player) uuid/type
 	public NamePlate getNamePlate(Player player) {
@@ -80,22 +92,13 @@ public class NamePlateAPI {
 	public NamePlate getNamePlate(EntityType entityType) {
 		return this.handler.getNamePlate(entityType);
 	}
-	public NamePlate getNamePlate(int id) {
-		return this.handler.getNamePlate(id);
-	}
 
 	public NamePlate getNamePlateOf(Player player) {
-		return this.getNamePlateOf(player.getUniqueId());
-	}
-	public NamePlate getNamePlateOf(Player player, boolean forceUnloadedChunks) {
-		return this.getNamePlateOf(player.getUniqueId(), forceUnloadedChunks);
+		return this.handler.getNamePlateOf(player);
 	}
 
 	public NamePlate getNamePlateOf(Entity entity) {
-		return this.getNamePlateOf(entity.getUniqueId());
-	}
-	public NamePlate getNamePlateOf(Entity entity, boolean forceUnloadedChunks) {
-		return this.getNamePlateOf(entity.getUniqueId(), forceUnloadedChunks);
+		return this.handler.getNamePlateOf(entity);
 	}
 
 	public NamePlate getNamePlateOf(UUID uuid) {
@@ -108,9 +111,13 @@ public class NamePlateAPI {
 	public NamePlate getNamePlate(Location location) {
 		return this.handler.getNamePlate(new BlockLocation(location));
 	}
+	public NamePlate getNamePlate(BlockLocation location) {
+		return this.handler.getNamePlate(location);
+	}
 
 	// removers
 
+	// universal, applies to static plates too
 	public NamePlate removeNamePlate(int id) {
 		return this.handler.removeNamePlate(id);
 	}
@@ -135,6 +142,14 @@ public class NamePlateAPI {
 
 	public NamePlate removeNamePlateFrom(UUID uuid, boolean autoExcludeIfNotSpecific) {
 		return this.handler.removeFrom(uuid, autoExcludeIfNotSpecific);
+	}
+
+	// static
+	public NamePlate removeNamePlateFromWorld(Location location) {
+		return this.handler.removeFromWorld(new BlockLocation(location));
+	}
+	public NamePlate removeNamePlateFromWorld(BlockLocation blockLocation) {
+		return this.handler.removeFromWorld(blockLocation);
 	}
 
 	// checks

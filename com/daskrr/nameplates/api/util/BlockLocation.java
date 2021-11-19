@@ -3,6 +3,7 @@ package com.daskrr.nameplates.api.util;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
@@ -48,6 +49,14 @@ public class BlockLocation extends Location {
     public BlockLocation setDirection(Vector vector) {
         // modification of pitch and yaw is disallowed
         return this;
+    }
+
+    public Location center() {
+        return new Location(this.getWorld(), (double) this.getBlockX() + .5D, (double) this.getBlockY() + .5D, (double) this.getBlockZ() + .5D, 0.0F, 0.0F);
+    }
+
+    public Location floor() {
+        return new Location(this.getWorld(), this.getBlockX(), this.getBlockY(), this.getBlockZ(), 0.0F, 0.0F);
     }
 
     @Override

@@ -6,8 +6,8 @@ import java.util.UUID;
 
 public class EntityGroup<T> {
 
-    public static final EntityGroup<EntityType> ENTITY_TYPE = create(new EntityGroup<>(Type.ENTITY_TYPE));
-    public static final EntityGroup<UUID> ENTITY = create(new EntityGroup<>(Type.ENTITY));
+    public static final EntityGroup.GroupBuilder<EntityType> ENTITY_TYPE = new GroupBuilder<>(Type.ENTITY_TYPE);
+    public static final EntityGroup.GroupBuilder<UUID> ENTITY = new GroupBuilder<>(Type.ENTITY);
 
     private final Type type;
 
@@ -16,11 +16,6 @@ public class EntityGroup<T> {
 
     private EntityGroup(Type type) {
         this.type = type;
-    }
-    private EntityGroup(EntityGroup<T> group) {
-        this.who = group.who;
-        this.type = group.type;
-        this.excluded = group.excluded;
     }
 
     public EntityGroup<T> set(T... who) {
@@ -48,8 +43,15 @@ public class EntityGroup<T> {
         return this.type;
     }
 
-    private static <T> EntityGroup<T> create(EntityGroup<T> group) {
-        return new EntityGroup<T>(group);
+    public static class GroupBuilder<T> {
+        private final Type type;
+        public GroupBuilder(Type type) {
+            this.type = type;
+        }
+
+        public EntityGroup<T> create() {
+            return new EntityGroup<T>(this.type);
+        }
     }
 
     public enum Type {

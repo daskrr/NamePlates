@@ -1,16 +1,19 @@
 package com.daskrr.nameplates.core.event;
 
-import org.bukkit.craftbukkit.libs.jline.internal.Nullable;
-import org.bukkit.entity.Entity;
-
-public interface NamePlateDestroyEvent extends NamePlateEvent {
+public interface NamePlateDestroyEvent extends StaticNamePlateEvent {
 
     Cause getCause();
     boolean isPermanentlyDestroyed();
 
     public enum Cause {
         ENTITY_DEATH,
+        ENTITY_SELF_DEATH,
         ENTITY_DESPAWN,
+        ENTITY_BREAK, // paintings and item frames
+        ITEM_PICK_UP,
+        ITEM_MERGE,
+        PROJECTILE_HIT,
+        PLAYER_DISCONNECT,
         MANUAL_REMOVAL
     }
 }

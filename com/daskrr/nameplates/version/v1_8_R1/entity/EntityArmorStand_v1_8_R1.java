@@ -4,7 +4,6 @@ import com.daskrr.nameplates.version.wrapped.entity.WrappedEntityArmorStand;
 import net.minecraft.server.v1_8_R1.EntityArmorStand;
 import net.minecraft.server.v1_8_R1.NBTTagCompound;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_8_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_8_R1.entity.CraftArmorStand;
 import org.bukkit.entity.ArmorStand;
@@ -49,6 +48,11 @@ public class EntityArmorStand_v1_8_R1 extends EntityLiving_v1_8_R1 implements Wr
     }
 
     @Override
+    public void setSmall(boolean small) {
+        ((EntityArmorStand) entity).setSmall(small);
+    }
+
+    @Override
     public ArmorStand getArmorStand() {
         return (ArmorStand) this.entity.getBukkitEntity();
     }
@@ -58,8 +62,8 @@ public class EntityArmorStand_v1_8_R1 extends EntityLiving_v1_8_R1 implements Wr
     }
 
     @Override
-    public WrappedEntityArmorStand instantiate(World world, Location location) {
-        this.entity = new EntityArmorStand(((CraftWorld) world).getHandle(), location.getX(), location.getY(), location.getZ());
+    public WrappedEntityArmorStand instantiate(Location location) {
+        this.entity = new EntityArmorStand(((CraftWorld) location.getWorld()).getHandle(), location.getX(), location.getY(), location.getZ());
 
         return this;
     }

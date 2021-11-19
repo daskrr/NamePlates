@@ -15,6 +15,7 @@ public class RayTrace_v1_8_R1 implements WrappedRayTrace {
         Vec3D startPos = new Vec3D(start.getX(), start.getY(), start.getZ());
         Vec3D endPos = new Vec3D(start.getX() + dir.getX(), start.getY() + dir.getY(), start.getZ() + dir.getZ());
 
+        //                                                                                                                                    ignorePassableBlocks
         return RayTraceResult_v1_8_R1.fromNMS(start.getWorld(), ((CraftWorld) start.getWorld()).getHandle().rayTrace(startPos, endPos, false, true, false));
     }
 }

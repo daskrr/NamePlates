@@ -13,9 +13,10 @@ public interface WrappedEntityArmorStand extends LivingEntityWrapper {
     void setInvulnerable(boolean invulnerable);
     void setInvisible(boolean invisible);
     void setMarker(boolean marker);
+    void setSmall(boolean small);
 
     ArmorStand getArmorStand();
 
-    WrappedEntityArmorStand instantiate(World world, Location location);
+    WrappedEntityArmorStand instantiate(Location location);
     WrappedEntityArmorStand instantiate(ArmorStand armorStand);
 }

@@ -1,21 +1,23 @@
 package com.daskrr.nameplates.core;
 
 import com.daskrr.nameplates.api.nameplate.NamePlate;
+import com.daskrr.nameplates.api.util.BlockLocation;
 import com.daskrr.nameplates.core.event.NamePlateDestroyEvent;
 import com.daskrr.nameplates.util.EntityUtils;
+import com.daskrr.nameplates.version.Version;
 import com.daskrr.nameplates.version.VersionProvider;
 import com.daskrr.nameplates.version.wrapped.WrappedItem;
 import com.daskrr.nameplates.version.wrapped.entity.WrappedEntity;
 import com.google.common.collect.Lists;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerKickEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.entity.*;
+import org.bukkit.event.hanging.HangingBreakEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.UUID;
 
@@ -25,6 +27,7 @@ public class EntityChecker implements Listener {
     public EntityChecker(NamePlateUpdater updater) {
         this.updater = updater;
         Bukkit.getPluginManager().registerEvents(this, this.updater.namePlateHandler.plugin);
+        VersionProvider.getItem(WrappedItem.COMPATIBILITY_LISTENER).registerEvents();
     }
 
     // checks entity for changes (based on events, not ticking)
@@ -32,44 +35,120 @@ public class EntityChecker implements Listener {
 
     // handle events for the nameplate handler
 
-    // NOT NEEDED?
-    // handle event for player join (check all entity groups)
-//    @SuppressWarnings("unchecked")
-//    @EventHandler
-//    public void onEvent(PlayerJoinEvent event) {
-//        int plateId = -1;
-//        for (Map.Entry<Integer, EntityGroup<?>> entry : this.namePlateHandler.entityGroups.entrySet()) {
-//            EntityGroup<?> group = entry.getValue();
-//            if (group.getType() == EntityGroup.Type.ENTITY)
-//                if (!Lists.newArrayList(((EntityGroup<UUID>) group).get()).contains(event.getPlayer().getUniqueId()))
-//                    return;
-//            plateId = entry.getKey();
-//        }
-//
-//        if (plateId == -1)
-//            return;
-//
-//        this.namePlateHandler.namePlates.get(plateId)
+    // custom
+    // TODO
+//    public void itemDeath(Entity entity) {
+//        this.entityRemove(entity, NamePlateDestroyEvent.Cause.ITEM_MERGE);
 //    }
 
     @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        updater.namePlateHandler.namePlates.forEach((id, namePlate) -> {
+            if (((ContextNamePlate) namePlate).getUpdaters().contains(ContextNamePlate.UpdateCriteria.PLAYER_JOIN))
+                namePlate.update();
+        });
+    }
+    @EventHandler
+    public void onDisconnect(PlayerQuitEvent event) {
+        updater.namePlateHandler.namePlates.forEach((id, namePlate) -> {
+            if (((ContextNamePlate) namePlate).getUpdaters().contains(ContextNamePlate.UpdateCriteria.PLAYER_JOIN))
+                namePlate.update();
+        });
+    }
+    @EventHandler
+    public void onDisconnect(PlayerKickEvent event) {
+        updater.namePlateHandler.namePlates.forEach((id, namePlate) -> {
+            if (((ContextNamePlate) namePlate).getUpdaters().contains(ContextNamePlate.UpdateCriteria.PLAYER_JOIN))
+                namePlate.update();
+        });
+    }
+
+    // health, name change, death, removal
+    @EventHandler
+    public void onEntityDamage(EntityDamageEvent event) {
+        new BukkitRunnable() {
+            public void run() {
+                updater.renderManager.update(event.getEntity());
+            }
+        }.runTaskLater(this.updater.namePlateHandler.plugin, 1);
+    }
+
+    @EventHandler
+    public void onEntityDamage(EntityRegainHealthEvent event) {
+        new BukkitRunnable() {
+            public void run() {
+                updater.renderManager.update(event.getEntity());
+            }
+        }.runTaskLater(this.updater.namePlateHandler.plugin, 1);
+    }
+
+    @EventHandler
+    public void onEntityInteract(PlayerInteractEntityEvent event) {
+        new BukkitRunnable() {
+            public void run() {
+                updater.renderManager.update(event.getRightClicked());
+            }
+        }.runTaskLater(this.updater.namePlateHandler.plugin, 1);
+    }
+
+    @EventHandler
     public void onPlayerDisconnect(PlayerQuitEvent event) {
-        this.entityDeath(event.getPlayer());
+        this.entityRemove(event.getPlayer(), NamePlateDestroyEvent.Cause.PLAYER_DISCONNECT);
     }
 
     @EventHandler
     public void onPlayerKick(PlayerKickEvent event) {
-        this.entityDeath(event.getPlayer());
+        this.entityRemove(event.getPlayer(), NamePlateDestroyEvent.Cause.PLAYER_DISCONNECT);
     }
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        this.entityDeath(event.getEntity());
+        this.entityRemove(event.getEntity(), NamePlateDestroyEvent.Cause.ENTITY_DEATH);
     }
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
-        this.entityDeath(event.getEntity());
+        this.entityRemove(event.getEntity(), NamePlateDestroyEvent.Cause.ENTITY_DEATH);
+    }
+
+    @EventHandler
+    public void onEntityDeath(EntityExplodeEvent event) {
+        this.entityRemove(event.getEntity(), NamePlateDestroyEvent.Cause.ENTITY_SELF_DEATH);
+    }
+
+    @EventHandler
+    public void onEntityDeath(PlayerPickupItemEvent event) {
+        this.entityRemove(event.getItem(), NamePlateDestroyEvent.Cause.ITEM_PICK_UP);
+    }
+
+    @EventHandler
+    public void onEntityDeath(ProjectileHitEvent event) {
+        if (VersionProvider.getInstance().getVersion() == Version.v1_8_R1)
+            if (event.getEntity() instanceof Arrow)
+                return;
+
+        this.entityRemove(event.getEntity(), NamePlateDestroyEvent.Cause.PROJECTILE_HIT);
+    }
+
+    @EventHandler
+    public void onEntityDeath(HangingBreakEvent event) {
+        this.entityRemove(event.getEntity(), NamePlateDestroyEvent.Cause.ENTITY_BREAK);
+    }
+
+//    @EventHandler
+//    public void onEntityDeath(FireworkExplodeEvent event) {
+//        this.entityRemove(event.getEntity(), NamePlateDestroyEvent.Cause.ENTITY_BREAK);
+//    }
+
+//    @EventHandler
+//    public void onEntityDeath(ItemMergeEvent event) {
+//        this.entityRemove(event.getEntity(), NamePlateDestroyEvent.Cause.ENTITY_BREAK);
+//    }
+
+    @EventHandler
+    public void onEntityDeath(EntityChangeBlockEvent event) {
+        if (event.getEntity() instanceof FallingBlock)
+            this.entityRemove(event.getEntity(), NamePlateDestroyEvent.Cause.ENTITY_BREAK);
     }
 
     @EventHandler
@@ -78,15 +157,29 @@ public class EntityChecker implements Listener {
             // check if entity is persistent
             if (!VersionProvider.getItem(WrappedItem.UTILS).isPersistent((WrappedEntity) VersionProvider.getItem(WrappedItem.ENTITY).instantiate(entity)))
                 // it's not, so it's "as good as dead" when the chunk unloads
-                this.entityDeath(entity);
+                this.entityRemove(entity, NamePlateDestroyEvent.Cause.ENTITY_DESPAWN);
         });
     }
 
-    // TODO change cause to match previous methods
     @SuppressWarnings("unchecked")
-    private void entityDeath(Entity entity) {
+    private void entityRemove(Entity entity, NamePlateDestroyEvent.Cause cause) {
+        // static entities are not handled
+        if (this.updater.namePlateHandler.staticAttachments.containsKey(entity.getUniqueId()))
+            return;
+
+        // check if entity has nameplate
+        if (this.updater.namePlateHandler.getNamePlateOf(entity) == null)
+            return;
+
+        // get nameplate
+        NamePlate namePlate = this.updater.namePlateHandler.getNamePlateOf(entity);
+
         // this will remove the rendered plate from the entity for good
-        NamePlate namePlate = this.updater.renderManager.removePermanently(entity);
+        this.updater.renderManager.remove(entity);
+
+        // check if entity had a rendered plate
+        if (namePlate == null)
+            return;
 
         boolean isPermanentlyDestroyed = true;
         // check if nameplate can still exist anywhere
@@ -115,6 +208,11 @@ public class EntityChecker implements Listener {
         boolean finalIsPermanentlyDestroyed = isPermanentlyDestroyed;
         this.updater.namePlateHandler.eventHandler.fireEvent(new NamePlateDestroyEvent() {
             @Override
+            public BlockLocation getLocation() {
+                return null; // static entities are not subjected to this
+            }
+
+            @Override
             public NamePlate getNamePlate() {
                 return namePlate;
             }
@@ -126,7 +224,7 @@ public class EntityChecker implements Listener {
 
             @Override
             public Cause getCause() {
-                return Cause.ENTITY_DEATH;
+                return cause;
             }
 
             @Override
@@ -135,6 +233,4 @@ public class EntityChecker implements Listener {
             }
         });
     }
-
-    // TODO mounting and plateOverlapScenario
 }

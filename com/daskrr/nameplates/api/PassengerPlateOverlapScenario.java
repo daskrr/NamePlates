@@ -1,6 +1,7 @@
 package com.daskrr.nameplates.api;
 
-public enum MultiplePassengerPlateOverlapScenario {
+public enum PassengerPlateOverlapScenario {
+	OVERLAP,
 	LEFT,
 	RIGHT,
 	ORDERED_ON_TOP,

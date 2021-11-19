@@ -10,7 +10,7 @@ import com.google.common.collect.Maps;
 
 public class NamePlateAPIOptions
 {
-	private Map<Key<?>, Option<?>> options;
+	private final Map<Key<?>, Option<?>> options;
 	
 	public NamePlateAPIOptions() {
 		this.options = Maps.newHashMap();
@@ -38,16 +38,18 @@ public class NamePlateAPIOptions
 	}
 	
 	public static class Key<T> {
-		public static final Key<Integer> VIEW_DISTANCE = makeKey(new Key<Integer>(160)); // THIS SHOULD NOT BE SMALLER THAN ANY SPECIFIC VIEW DISTANCES
-		public static final Key<Boolean> RESOURCE_FRIENDLY = makeKey(new Key<Boolean>(false));
+
+		private static final List<Key<?>> keys = Lists.newArrayList();
+
+		public static final Key<Integer> VIEW_DISTANCE = makeKey(new Key<Integer>(160)); // THIS SHOULD NOT BE BIGGER THAN ANY SPECIFIC VIEW DISTANCES
+		public static final Key<Boolean> RESOURCE_FRIENDLY = makeKey(new Key<Boolean>(false)); // TODO
 		public static final Key<Integer> POSITION_UPDATE_TIME = makeKey(new Key<Integer>(2));
-		public static final Key<Double> MARGIN_BOTTOM = makeKey(new Key<Double>(.35D));
-		public static final Key<Double[]> MARGIN = makeKey(new Key<Double[]>(new Double[] {.25D, .25D}));
-		public static final Key<MultiplePassengerPlateOverlapScenario> MULTIPLE_PASSENGER_PLATE_OVERLAP = makeKey(new Key<MultiplePassengerPlateOverlapScenario>(MultiplePassengerPlateOverlapScenario.LEFT));
-		public static final Key<Double> MULTIPLE_PASSENGER_PLATE_OVERLAP_OFFSET = makeKey(new Key<Double>(.75D));
-		public static final Key<Boolean> RENDER_BEHIND_WALLS = makeKey(new Key<Boolean>(false));
+		public static final Key<Double> MARGIN_BOTTOM = makeKey(new Key<Double>(.1D));
+		public static final Key<Double[]> MARGIN = makeKey(new Key<Double[]>(new Double[] {0D, 0D}));
+		public static final Key<PassengerPlateOverlapScenario> PASSENGER_PLATE_OVERLAP = makeKey(new Key<PassengerPlateOverlapScenario>(PassengerPlateOverlapScenario.LEFT));
+		public static final Key<Boolean> RENDER_BEHIND_WALLS = makeKey(new Key<Boolean>(true));
 		
-		private T defaultValue;
+		private final T defaultValue;
 		
 		private Key (T defaultValue) {
 			this.defaultValue = defaultValue;
@@ -56,8 +58,6 @@ public class NamePlateAPIOptions
 		public Option<T> getDefaultValue() {
 			return new Option<T>(this.defaultValue);
 		}
-		
-		private static final List<Key<?>> keys = Lists.newArrayList();
 		
 		private static <T> Key<T> makeKey(Key<T> key) {
 			keys.add(key);
