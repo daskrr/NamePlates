@@ -92,6 +92,23 @@ public class EntityChecker implements Listener {
     }
 
     @EventHandler
+    public void onEntityChangeDimension(EntityPortalEnterEvent event) {
+        new BukkitRunnable() {
+            public void run() {
+                updater.renderManager.update(event.getEntity());
+            }
+        }.runTaskLater(this.updater.namePlateHandler.plugin, 1);
+    }
+    @EventHandler
+    public void onEntityChangeDimension(EntityPortalExitEvent event) {
+        new BukkitRunnable() {
+            public void run() {
+                updater.renderManager.update(event.getEntity());
+            }
+        }.runTaskLater(this.updater.namePlateHandler.plugin, 1);
+    }
+
+    @EventHandler
     public void onPlayerDisconnect(PlayerQuitEvent event) {
         this.entityRemove(event.getPlayer(), NamePlateDestroyEvent.Cause.PLAYER_DISCONNECT);
     }
@@ -201,6 +218,9 @@ public class EntityChecker implements Listener {
         if (isPermanentlyDestroyed) {
             this.updater.namePlateHandler.namePlates.remove(namePlate.getId());
             this.updater.namePlateHandler.entityGroups.remove(namePlate.getId());
+
+            // remove updaters
+            this.updater.removeNamePlateUpdaters(namePlate.getId());
         }
 
 

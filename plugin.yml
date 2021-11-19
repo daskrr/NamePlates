@@ -1,6 +1,6 @@
 name: EntityNamePlatesAPI
 description: TODO
-version: 0.0.4a
+version: 0.0.5_1a
 author: daskrr
 
 main: com.daskrr.nameplates.core.NamePlatesPlugin

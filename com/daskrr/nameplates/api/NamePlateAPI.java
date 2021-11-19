@@ -202,4 +202,8 @@ public class NamePlateAPI {
 	public void enableView(Player... players) {
 		this.handler.enableView(players);
 	}
+
+	public void updateNamePlate(int id) {
+		this.handler.updater.update(id);
+	}
 }

@@ -942,7 +942,7 @@ public class RenderManager implements Listener {
                 WrappedPacketGameEntityMetadata metadataItemPacket = VersionProvider.getItem(WrappedItem.PACKET_GAME_ENTITY_METADATA).instantiate(
                         item.getId(),
                         item.getWrappedDataWatcher(),
-                        false);
+                        true);
 
                 WrappedPacketGameMountEntity mountItemPacket = VersionProvider.getItem(WrappedItem.PACKET_GAME_MOUNT_ENTITY).instantiate(0, item, armorStand);
 

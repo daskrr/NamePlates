@@ -91,6 +91,8 @@ public class NamePlatesPlugin extends JavaPlugin
 				Entity entity = EntityUtils.getEntityInLoadedChunks(entityUUID);
 				if (entity != null)
 					this.plateHandler.updater.renderManager.remove(entity);
+
+				this.plateHandler.updater.removeNamePlateUpdaters(namePlate.getId());
 			});
 		});
 
@@ -98,6 +100,8 @@ public class NamePlatesPlugin extends JavaPlugin
 			Maps.newHashMap(((ContextNamePlate) namePlate).getRenders()).forEach((entityUUID, render) -> {
 				Entity entity = this.plateHandler.updater.renderManager.createEntityAttachment(entityUUID, this.plateHandler.staticLocations.get(id));
 				this.plateHandler.updater.renderManager.remove(entity);
+
+				this.plateHandler.updater.removeNamePlateUpdaters(namePlate.getId());
 			});
 		});
 	}
